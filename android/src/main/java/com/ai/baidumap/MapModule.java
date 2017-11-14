@@ -43,7 +43,6 @@ public class MapModule extends BaseModule {
 
 
     public void ding(double latitude, double longitude){
-        System.out.println("定位啦定位啦~！~！");
         mBaiduMap = mapManager.getMapView().getMap();
 
         // 开启定位图层

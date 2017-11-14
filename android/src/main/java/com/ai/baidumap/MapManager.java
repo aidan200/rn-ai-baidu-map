@@ -38,8 +38,8 @@ public class MapManager extends ViewGroupManager<MapView>{
     private ThemedReactContext mReactContext;
     private MapView mapView;
 
-    public MapManager(ReactApplicationContext reactContext){
-        SDKInitializer.initialize(reactContext.getApplicationContext());
+    public MapManager(Context context){
+        SDKInitializer.initialize(context);
     }
 
     public String getName() {
@@ -47,7 +47,6 @@ public class MapManager extends ViewGroupManager<MapView>{
     }
 
     public MapView createViewInstance(ThemedReactContext context) {
-        System.out.println("----------生成视图------------------");
         mReactContext = context;
         mapView =  new MapView(context);
         this.setListeners(mapView);

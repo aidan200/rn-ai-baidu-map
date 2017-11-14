@@ -1,6 +1,6 @@
 {
   "name": "rn-ai-baidu-map",
-  "version": "1.0.3",
+  "version": "1.0.9",
   "description": "just do it",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,8 @@
     "url": "git+https://github.com/aidan200/rn-ai-baidu-map.git"
   },
   "keywords": [
-    "react-native"
+    "react-native",
+    "baidu-map"
   ],
   "author": "aidan200",
   "license": "ISC",
