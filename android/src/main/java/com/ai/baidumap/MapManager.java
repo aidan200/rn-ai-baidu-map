@@ -1,6 +1,9 @@
 package com.ai.baidumap;
 import android.content.Context;
 import android.support.annotation.Nullable;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.ZoomControls;
 
 import com.baidu.mapapi.SDKInitializer;
 import com.baidu.mapapi.map.BaiduMap;
@@ -21,7 +24,6 @@ import com.baidu.mapapi.search.geocode.OnGetGeoCoderResultListener;
 import com.baidu.mapapi.search.geocode.ReverseGeoCodeOption;
 import com.baidu.mapapi.search.geocode.ReverseGeoCodeResult;
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.ViewGroupManager;
@@ -29,7 +31,6 @@ import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -49,6 +50,12 @@ public class MapManager extends ViewGroupManager<MapView>{
     public MapView createViewInstance(ThemedReactContext context) {
         mReactContext = context;
         mapView =  new MapView(context);
+        //去除百度logo--
+        View child = mapView.getChildAt(1);
+        if (child != null&&
+                (child instanceof ImageView ||child instanceof ZoomControls)) {
+            child.setVisibility(View.INVISIBLE);
+        }//--end
         this.setListeners(mapView);
         return mapView;
     }
@@ -74,15 +81,25 @@ public class MapManager extends ViewGroupManager<MapView>{
                 WritableMap writableMap =  Arguments.createMap();
                 WritableArray writableArray = Arguments.createArray();
                 LatLng latLng = reverseGeoCodeResult.getLocation();
+                String address = reverseGeoCodeResult.getAddress();
+
+                //设置规划路线终点
+                PoiState.mark = latLng;
+                PoiState.markCity = reverseGeoCodeResult.getAddressDetail().city;
+                PoiState.markCityCode = reverseGeoCodeResult.getCityCode();
+
 
                 List<PoiInfo> poiInfos = reverseGeoCodeResult.getPoiList();
                 for (PoiInfo poiInfo : poiInfos) {
                     WritableMap map = Arguments.createMap();
                     map.putString("address",poiInfo.address);
+                    map.putDouble("latitude",poiInfo.location.latitude);
+                    map.putDouble("longitude",poiInfo.location.longitude);
                     writableArray.pushMap(map);
                 }
                 writableMap.putDouble("latitude", latLng.latitude);
                 writableMap.putDouble("longitude", latLng.longitude);
+                writableMap.putString("address", address);
                 writableMap.putArray("poiInfos", writableArray);
                 sendEvent(mapView, "onMapClick", writableMap);
             }

@@ -16,18 +16,19 @@ import com.facebook.react.uimanager.ViewManager;
 
 
 public class MapPackage implements ReactPackage {
-    
+
     private MapManager mapManager;
-    
+
     public MapPackage(Context context){
         mapManager = new MapManager(context);
     }
-    
+
 
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
         List<NativeModule> modules = new ArrayList<>() ;
         modules.add(new MapModule(reactContext,mapManager)) ;
+        modules.add(new RouteModule(reactContext,mapManager));
         return modules;
     }
     @Override

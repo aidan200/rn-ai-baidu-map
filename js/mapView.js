@@ -31,7 +31,6 @@ export default class MapView extends Component {
       }
 
     render() {
-        console.log(this)
         return (
             <BaiduMapView {...this.props} onChange={this._onChange.bind(this)}/>
         )
