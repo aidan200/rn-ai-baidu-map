@@ -31,7 +31,6 @@ import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
 
-import java.util.List;
 
 
 public class MapManager extends ViewGroupManager<MapView>{
@@ -66,63 +65,14 @@ public class MapManager extends ViewGroupManager<MapView>{
 
     private void setListeners(final MapView mapView){
         BaiduMap map = mapView.getMap();
-
-        //搜索监听(附近poi点)
-        final GeoCoder geoCoder = GeoCoder.newInstance();
-        geoCoder.setOnGetGeoCodeResultListener(new OnGetGeoCoderResultListener() {
-            @Override
-            public void onGetGeoCodeResult(GeoCodeResult geoCodeResult) {
-
-            }
-
-            @Override
-            public void onGetReverseGeoCodeResult(ReverseGeoCodeResult reverseGeoCodeResult) {
-
-                WritableMap writableMap =  Arguments.createMap();
-                WritableArray writableArray = Arguments.createArray();
-                LatLng latLng = reverseGeoCodeResult.getLocation();
-                String address = reverseGeoCodeResult.getAddress();
-
-                //设置规划路线终点
-                PoiState.mark = latLng;
-                PoiState.markCity = reverseGeoCodeResult.getAddressDetail().city;
-                PoiState.markCityCode = reverseGeoCodeResult.getCityCode();
-
-
-                List<PoiInfo> poiInfos = reverseGeoCodeResult.getPoiList();
-                for (PoiInfo poiInfo : poiInfos) {
-                    WritableMap map = Arguments.createMap();
-                    map.putString("address",poiInfo.address);
-                    map.putDouble("latitude",poiInfo.location.latitude);
-                    map.putDouble("longitude",poiInfo.location.longitude);
-                    writableArray.pushMap(map);
-                }
-                writableMap.putDouble("latitude", latLng.latitude);
-                writableMap.putDouble("longitude", latLng.longitude);
-                writableMap.putString("address", address);
-                writableMap.putArray("poiInfos", writableArray);
-                sendEvent(mapView, "onMapClick", writableMap);
-            }
-        });
-
-
         map.setOnMapClickListener(new BaiduMap.OnMapClickListener() {
             // 地图点击
             @Override
             public void onMapClick(LatLng latLng) {
-                mapView.getMap().clear();
-                //构建Marker图标
-                BitmapDescriptor bitmap2 = BitmapDescriptorFactory.fromResource(R.mipmap.mak);
-                //构建MarkerOption，用于在地图上添加Marker
-                OverlayOptions option = new MarkerOptions()
-                        .position(latLng)
-                        .icon(bitmap2).animateType(MarkerOptions.MarkerAnimateType.grow);
-                //在地图上添加Marker，并显示
-                mapView.getMap().addOverlay(option);
-                //搜索周边监听执行
-                ReverseGeoCodeOption reverseGeoCodeOption = new ReverseGeoCodeOption();
-                reverseGeoCodeOption.location(latLng);
-                geoCoder.reverseGeoCode(reverseGeoCodeOption);
+                WritableMap writableMap =  Arguments.createMap();
+                writableMap.putDouble("latitude", latLng.latitude);
+                writableMap.putDouble("longitude", latLng.longitude);
+                sendEvent(mapView, "onMapClick", writableMap);
             }
             //poi点点击
             @Override
