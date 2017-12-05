@@ -116,6 +116,10 @@ public class MapModule extends BaseModule{
                 .icon(bitmap2).animateType(MarkerOptions.MarkerAnimateType.grow);
         //在地图上添加Marker，并显示
         mBaiduMap.addOverlay(option);
+        //设置地图显示状态（位置）
+        MapStatus.Builder builder = new MapStatus.Builder();
+        builder.target(latLng);
+        mBaiduMap.setMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
         //搜索周边监听执行
         ReverseGeoCodeOption reverseGeoCodeOption = new ReverseGeoCodeOption();
         reverseGeoCodeOption.location(latLng);
