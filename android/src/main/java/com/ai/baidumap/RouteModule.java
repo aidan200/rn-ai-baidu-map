@@ -52,6 +52,7 @@ public class RouteModule extends BaseModule {
     private RoutePlanSearch mSearch;
     private OnGetRoutePlanResultListener routeListener;
     private OverlayManager overlayManager; //覆盖物父类
+    private List<MassTransitRouteLine> massTransitRouteLines;//跨城路线集合
     private List<TransitRouteLine> transitRouteLines;//同城路线集合
     private List<WalkingRouteLine> walkingRouteLines;//步行路线集合
     private List<BikingRouteLine> bikingRouteLines;//骑行路线集合
@@ -87,16 +88,14 @@ public class RouteModule extends BaseModule {
             if(PoiState.postionCityCode==PoiState.markCityCode){//判断同城
                 mSearch.transitSearch(new TransitRoutePlanOption().city(PoiState.markCity).from(stNode).to(enNode));
             }else{
-                writableMap.putString("state","err");
-                writableMap.putString("msg","公交地铁路线需在同一城市");
-                sendEvent("toNavigationSel",writableMap);
+                mSearch.masstransitSearch(new MassTransitRoutePlanOption().from(stNode).to(enNode));
             }
         }else if(type.equals("bx")){
             mSearch.walkingSearch(new WalkingRoutePlanOption().from(stNode).to(enNode));
         }else if(type.equals("qx")){
             mSearch.bikingSearch(new BikingRoutePlanOption().from(stNode).to(enNode));
         }else if(type.equals("jc")){
-            mSearch.drivingSearch(new DrivingRoutePlanOption().from(stNode).to(enNode));
+            mSearch.drivingSearch(new DrivingRoutePlanOption().currentCity(PoiState.markCity).from(stNode).to(enNode));
         }else{
             writableMap.putString("state","err");
             writableMap.putString("msg","未指定路线类型");
@@ -113,11 +112,19 @@ public class RouteModule extends BaseModule {
         mBaiduMap = mapManager.getMapView().getMap();
 
         if(type.equals("hct")){
-            overlayManager = new TransitRouteOverlay(mBaiduMap);
-            TransitRouteOverlay overlay = (TransitRouteOverlay) overlayManager;
-            overlay.setData(transitRouteLines.get(index));
-            overlay.addToMap();
-            overlay.zoomToSpan();
+            if(PoiState.postionCityCode==PoiState.markCityCode) {
+                overlayManager = new TransitRouteOverlay(mBaiduMap);
+                TransitRouteOverlay overlay = (TransitRouteOverlay) overlayManager;
+                overlay.setData(transitRouteLines.get(index));
+                overlay.addToMap();
+                overlay.zoomToSpan();
+            }else{
+                overlayManager = new MassTransitRouteOverlay(mBaiduMap);
+                MassTransitRouteOverlay overlay = (MassTransitRouteOverlay) overlayManager;
+                overlay.setData(massTransitRouteLines.get(index));
+                overlay.addToMap();
+                overlay.zoomToSpan();
+            }
         }else if(type.equals("qx")){
             overlayManager = new BikingRouteOverlay(mBaiduMap);
             BikingRouteOverlay overlay = (BikingRouteOverlay) overlayManager;
@@ -172,6 +179,33 @@ public class RouteModule extends BaseModule {
             writableMap.putArray("Lines",writableArray);
             writableMap.putString("state","ok");
 
+        }else if(type.equals("hc")){
+            MassTransitRouteResult mr = (MassTransitRouteResult) result;
+            massTransitRouteLines = mr.getRouteLines();
+            WritableArray writableArray = Arguments.createArray();
+            int index = 0;
+            for (MassTransitRouteLine massTransitRouteLine : massTransitRouteLines) {
+                WritableMap wm = Arguments.createMap();
+                wm.putInt("distance",massTransitRouteLine.getDistance());//距离（单位：米）
+                wm.putInt("duration",massTransitRouteLine.getDuration());//耗时 (单位：秒)
+                wm.putString("title",massTransitRouteLine.getTitle());
+                wm.putString("time",massTransitRouteLine.getArriveTime());
+                wm.putInt("index",index++);
+                WritableArray wa = Arguments.createArray();
+                for (List<MassTransitRouteLine.TransitStep> transitSteps : massTransitRouteLine.getNewSteps()) {
+                    for (MassTransitRouteLine.TransitStep transitStep : transitSteps) {
+                        WritableMap wm2 = Arguments.createMap();
+                        wm2.putString("stepType",transitStep.getVehileType().toString());
+                        wm2.putString("instructions",transitStep.getInstructions());
+
+                        wa.pushMap(wm2);
+                    }
+                }
+                wm.putArray("transitSteps",wa);
+                writableArray.pushMap(wm);
+            }
+            writableMap.putArray("Lines",writableArray);
+            writableMap.putString("state","ok");
         }else if(type.equals("qx")){//骑行路线
             BikingRouteResult bt = (BikingRouteResult) result;
             bikingRouteLines = bt.getRouteLines();
@@ -179,6 +213,8 @@ public class RouteModule extends BaseModule {
             int index = 0;
             for (BikingRouteLine bikingRouteLine : bikingRouteLines) {
                 WritableMap wm = Arguments.createMap();
+                wm.putInt("distance",bikingRouteLine.getDistance());
+                wm.putInt("duration",bikingRouteLine.getDuration());
                 wm.putInt("index",index++);
                 WritableArray wa = Arguments.createArray();
                 for (BikingRouteLine.BikingStep bikingStep : bikingRouteLine.getAllStep()) {
@@ -200,6 +236,8 @@ public class RouteModule extends BaseModule {
             int index = 0;
             for (WalkingRouteLine walkingRouteLine : walkingRouteLines) {
                 WritableMap wm = Arguments.createMap();
+                wm.putInt("distance",walkingRouteLine.getDistance());
+                wm.putInt("duration",walkingRouteLine.getDuration());
                 wm.putInt("index",index++);
                 WritableArray wa = Arguments.createArray();
                 for (WalkingRouteLine.WalkingStep walkingStep : walkingRouteLine.getAllStep()) {
@@ -220,12 +258,15 @@ public class RouteModule extends BaseModule {
             int index = 0;
             for (DrivingRouteLine drivingRouteLine : drivingRouteLines) {
                 WritableMap wm = Arguments.createMap();
+                wm.putInt("distance",drivingRouteLine.getDistance());
+                wm.putInt("duration",drivingRouteLine.getDuration());
                 wm.putInt("index",index++);
                 WritableArray wa = Arguments.createArray();
                 for (DrivingRouteLine.DrivingStep drivingStep : drivingRouteLine.getAllStep()) {
                     WritableMap wm2 = Arguments.createMap();
                     wm2.putString("exitInstructions",drivingStep.getExitInstructions());//获取路段出口指示信息
                     wm2.putString("instructions",drivingStep.getInstructions());//获取路段整体指示信息
+
                     wa.pushMap(wm2);
                 }
                 wm.putArray("drivingSteps",wa);
