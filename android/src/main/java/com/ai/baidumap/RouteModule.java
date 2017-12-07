@@ -167,7 +167,6 @@ public class RouteModule extends BaseModule {
                     wm2.putInt("duration",transitStep.getDuration());
                     if(transitStep.getVehicleInfo()!=null){
                         wm2.putString("entrance",transitStep.getEntrance().getTitle());
-                        wm2.putString("exit",transitStep.getEntrance().getTitle());
                         VehicleInfo vehicleInfo = transitStep.getVehicleInfo();
                         wm2.putString("vehicleName",vehicleInfo.getTitle());
                         wm2.putInt("vehiclePassStationNum",vehicleInfo.getPassStationNum());
@@ -179,6 +178,7 @@ public class RouteModule extends BaseModule {
                 writableArray.pushMap(wm);
             }
             writableMap.putArray("Lines",writableArray);
+            writableMap.putBoolean("isCrossCity",false);
             writableMap.putString("state","ok");
 
         }else if(type.equals("hc")){
@@ -190,24 +190,38 @@ public class RouteModule extends BaseModule {
                 WritableMap wm = Arguments.createMap();
                 wm.putInt("distance",massTransitRouteLine.getDistance());//距离（单位：米）
                 wm.putInt("duration",massTransitRouteLine.getDuration());//耗时 (单位：秒)
-                wm.putString("title",massTransitRouteLine.getTitle());
                 wm.putString("time",massTransitRouteLine.getArriveTime());
                 wm.putInt("index",index++);
                 WritableArray wa = Arguments.createArray();
                 for (List<MassTransitRouteLine.TransitStep> transitSteps : massTransitRouteLine.getNewSteps()) {
                     for (MassTransitRouteLine.TransitStep transitStep : transitSteps) {
-                        WritableMap wm2 = Arguments.createMap();
-                        wm2.putString("stepType",transitStep.getVehileType().toString());
-                        wm2.putString("instructions",transitStep.getInstructions());
-                        wm2.putInt("distance",transitStep.getDistance());
-                        wm2.putInt("duration",transitStep.getDuration());
-                        wa.pushMap(wm2);
+                        if(transitStep.getVehileType()!= MassTransitRouteLine.TransitStep.StepVehicleInfoType.ESTEP_WALK
+                                &&transitStep.getVehileType()!= MassTransitRouteLine.TransitStep.StepVehicleInfoType.ESTEP_BUS
+                                    &&transitStep.getVehileType()!= MassTransitRouteLine.TransitStep.StepVehicleInfoType.ESTEP_DRIVING){//不是步行的
+                            WritableMap wm2 = Arguments.createMap();
+                            if(transitStep.getVehileType()==MassTransitRouteLine.TransitStep.StepVehicleInfoType.ESTEP_TRAIN){
+                                wm2.putString("entrance",transitStep.getTrainInfo().getName());
+                                wm2.putString("departureStation",transitStep.getTrainInfo().getDepartureStation());
+                            }else if(transitStep.getVehileType()==MassTransitRouteLine.TransitStep.StepVehicleInfoType.ESTEP_COACH){
+                                wm2.putString("entrance",transitStep.getCoachInfo().getName());
+                                wm2.putString("departureStation",transitStep.getCoachInfo().getDepartureStation());
+                            }else if(transitStep.getVehileType()==MassTransitRouteLine.TransitStep.StepVehicleInfoType.ESTEP_PLANE){
+                                wm2.putString("entrance",transitStep.getPlaneInfo().getName());
+                                wm2.putString("departureStation",transitStep.getPlaneInfo().getDepartureStation());
+                            }
+                            wm2.putString("stepType",transitStep.getVehileType().toString());
+                            wm2.putString("instructions",transitStep.getInstructions());
+                            wm2.putInt("distance",transitStep.getDistance());
+                            wm2.putInt("duration",transitStep.getDuration());
+                            wa.pushMap(wm2);
+                        }
                     }
                 }
                 wm.putArray("transitSteps",wa);
                 writableArray.pushMap(wm);
             }
             writableMap.putArray("Lines",writableArray);
+            writableMap.putBoolean("isCrossCity",true);
             writableMap.putString("state","ok");
         }else if(type.equals("qx")){//骑行路线
             BikingRouteResult bt = (BikingRouteResult) result;
