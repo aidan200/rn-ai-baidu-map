@@ -163,6 +163,8 @@ public class RouteModule extends BaseModule {
                     WritableMap wm2 = Arguments.createMap();
                     wm2.putString("stepType",transitStep.getStepType().toString());
                     wm2.putString("instructions",transitStep.getInstructions());
+                    wm2.putInt("distance",transitStep.getDistance());
+                    wm2.putInt("duration",transitStep.getDuration());
                     if(transitStep.getVehicleInfo()!=null){
                         wm2.putString("entrance",transitStep.getEntrance().getTitle());
                         wm2.putString("exit",transitStep.getEntrance().getTitle());
@@ -197,7 +199,8 @@ public class RouteModule extends BaseModule {
                         WritableMap wm2 = Arguments.createMap();
                         wm2.putString("stepType",transitStep.getVehileType().toString());
                         wm2.putString("instructions",transitStep.getInstructions());
-
+                        wm2.putInt("distance",transitStep.getDistance());
+                        wm2.putInt("duration",transitStep.getDuration());
                         wa.pushMap(wm2);
                     }
                 }
