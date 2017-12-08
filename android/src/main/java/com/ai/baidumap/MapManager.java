@@ -86,6 +86,14 @@ public class MapManager extends ViewGroupManager<MapView>{
                 return true;
             }
         });
+        map.setOnMapLoadedCallback(new BaiduMap.OnMapLoadedCallback() {
+            @Override
+            public void onMapLoaded() {
+                WritableMap writableMap = Arguments.createMap();
+                writableMap.putString("state","ok");
+                sendEvent(mapView, "onMapLoad", writableMap);
+            }
+        });
     }
 
     @ReactProp(name="zoom")
