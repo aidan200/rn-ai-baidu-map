@@ -63,7 +63,7 @@ public class MapModule extends BaseModule{
 
     //设置定位点
     public void ding(double latitude, double longitude,final String type){
-        mBaiduMap = mapManager.getMapView().getMap();
+        if(mBaiduMap==null)mBaiduMap = mapManager.getMapView().getMap();
         // 开启定位图层
         mBaiduMap.setMyLocationEnabled(true);
         mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
@@ -106,6 +106,7 @@ public class MapModule extends BaseModule{
     //设置mark点
     @ReactMethod
     public void setMark(double latitude, double longitude){
+        if(mBaiduMap==null)mBaiduMap = mapManager.getMapView().getMap();
         LatLng latLng = new LatLng(latitude,longitude);
         mBaiduMap.clear();
         //构建Marker图标
